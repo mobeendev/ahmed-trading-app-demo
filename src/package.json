@@ -1,0 +1,17 @@
+{
+  "name": "trading-system",
+  "version": "1.0.0",
+  "description": "PBT205 Task 2 — XYZ Corp Trading System with RabbitMQ",
+  "scripts": {
+    "exchange": "node exchange.js amqp://localhost",
+    "gui": "node gui.js amqp://localhost"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "amqplib": "^0.10.3",
+    "blessed": "^0.1.81",
+    "minimist": "^1.2.8"
+  }
+}

@@ -1,0 +1,91 @@
+You are helping me build a Trading System prototype for university assessment PBT205 (Task 2).
+
+## Project Overview
+Build a command-line Trading System using Node.js and RabbitMQ middleware. The system models a simple stock exchange for one stock: XYZ Corp.
+
+## Tech Stack
+- Language: JavaScript (Node.js)
+- Middleware: RabbitMQ (via Docker)
+- AMQP Library: amqplib
+- TUI Library: blessed
+- Serialisation: JSON
+
+## Architecture — 3 Separate Applications
+
+### 1. `exchange.js` — The Exchange (1 instance only)
+Start-up argument:
+  - middleware endpoint (e.g. amqp://localhost)
+
+Behaviour:
+  - Connect to RabbitMQ
+  - Assert two queues: 'orders' (fanout exchange) and 'trades'
+  - Subscribe to the 'orders' queue
+  - Maintain an in-memory order book (separate arrays for BUY and SELL)
+  - On receiving an order:
+      - If a matching opposite-side order exists where buyer price >= seller price:
+          - Remove both from the order book
+          - Publish a trade object to 'trades' queue: { buyer, seller, price, qty, timestamp }
+          - Trade price = the resting order's price (price discovery)
+      - Else: add the order to the order book
+  - Print all activity to console
+
+### 2. `sendOrder.js` — The Trader CLI
+Start-up arguments (via process.argv or a CLI library like minimist):
+  - --user      : username/trader ID (string)
+  - --endpoint  : RabbitMQ endpoint (default: amqp://localhost)
+  - --side      : BUY or SELL
+  - --price     : desired price (float)
+  - --qty       : quantity (integer, default 100)
+
+Behaviour:
+  - Connect to RabbitMQ
+  - Publish one order JSON message to the 'orders' queue
+  - Print confirmation and exit immediately
+
+Order message shape:
+  { id, user, side, price, qty, timestamp }
+
+### 3. `gui.js` — Terminal UI Dashboard (blessed)
+Start-up argument:
+  - middleware endpoint
+
+Behaviour:
+  - Connect to RabbitMQ and subscribe to 'trades' queue
+  - Display a 4-panel TUI:
+      Panel 1 (top): Live price header for XYZ Corp (last traded price, change, % change)
+      Panel 2 (left): BUY order book — sorted highest price first, with bar chart
+      Panel 3 (middle): SELL order book — sorted lowest price first, with bar chart
+      Panel 4 (right): Trade feed — last 20 matched trades in reverse-chronological order
+      Panel 5 (bottom): Send Order form — fields: username, BUY/SELL toggle, price, qty (fixed 100), Submit button
+      Panel 6 (bottom-right): Activity log with timestamps
+  - Submit button publishes an order to the 'orders' queue via amqplib
+  - Refresh display whenever a new trade arrives on 'trades' queue
+
+## RabbitMQ Setup
+Use this Docker command to start RabbitMQ before running any app:
+  docker run -it --rm --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
+
+## File Structure
+trading-system/
+├── exchange.js       # matching engine
+├── sendOrder.js      # CLI order sender
+├── gui.js            # blessed TUI dashboard
+├── package.json      # dependencies: amqplib, blessed, minimist
+└── README.md         # setup and usage instructions
+
+## README must include
+- How to start RabbitMQ with Docker
+- How to run each application with example commands:
+    node exchange.js amqp://localhost
+    node sendOrder.js --user alice --side BUY --price 142.50 --endpoint amqp://localhost
+    node gui.js amqp://localhost
+- Description of the order matching logic
+- JSON message schemas for orders and trades
+
+## Code Quality Requirements
+- Use async/await throughout (no callbacks)
+- Handle connection errors gracefully with console messages
+- Add comments explaining the matching logic in exchange.js
+- Validate all start-up arguments and print usage instructions if they are missing
+
+Please build all files now, install dependencies, verify the code runs without syntax errors, and provide a summary of how to test the full system end-to-end.

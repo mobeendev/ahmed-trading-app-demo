@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/mobeena/my/other/trading_app -maxdepth 2 -type f -name \"*.json\" -o -name \"*.md\" -o -name \"*.txt\" -o -name \"*.toml\" -o -name \"*.yaml\" -o -name \"*.yml\" 2>/dev/null | head -30)",
+      "Bash(find /c/Users/mobeena/my/other/trading_app -type f ! -name \"*.pdf\" 2>/dev/null | sort)",
+      "Bash(find . -type f -name \".*\" ! -path \"./.git/*\" 2>/dev/null | head -20)",
+      "Bash(cd C:/Users/mobeena/my/other/trading_app/src && npm install)",
+      "Bash(cd C:/Users/mobeena/my/other/trading_app/src && node -c exchange.js && echo \"exchange.js OK\" && node -c sendOrder.js && echo \"sendOrder.js OK\" && node -c gui.js && echo \"gui.js OK\")",
+      "Bash(cd C:/Users/mobeena/my/other/trading_app/src && node sendOrder.js 2>&1; echo \"exit: $?\")",
+      "Bash(chmod +x C:/Users/mobeena/my/other/trading_app/src/start.sh)",
+      "Bash(chmod +x C:/Users/mobeena/my/other/trading_app/src/trader.sh)",
+      "Bash(cd C:/Users/mobeena/my/other/trading_app/src && node -c gui.js && echo \"gui.js OK\")",
+      "Bash(cd \"C:\\\\Users\\\\mobeena\\\\my\\\\other\\\\trading_app\\\\server\" && npm install 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\mobeena\\\\my\\\\other\\\\trading_app\" && npx @angular/cli@19 new web --style=scss --routing=false --ssr=false --skip-git --skip-tests 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\mobeena\\\\my\\\\other\\\\trading_app\\\\web\" && npm install socket.io-client 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\mobeena\\\\my\\\\other\\\\trading_app\\\\web\" && npx ng build 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\mobeena\\\\my\\\\other\\\\trading_app\\\\server\" && node -c src/index.js && node -c src/state.js && node -c src/services/rabbitmq.js && node -c src/routes/orders.js && echo \"All server files OK\")",
+      "Bash(cd \"C:\\\\Users\\\\mobeena\\\\my\\\\other\\\\trading_app\\\\src\" && node -c exchange.js && node -c sendOrder.js && echo \"All src files OK\")",
+      "Bash(tasklist /FI \"IMAGENAME eq node.exe\" /FO TABLE 2>&1 | head -20)",
+      "Bash(wmic process:*)",
+      "Bash(taskkill //PID 47948 //F 2>&1 && taskkill //PID 7488 //F 2>&1)",
+      "Bash(taskkill //PID 13304 //F 2>&1)",
+      "Bash(taskkill //PID 30040 //F 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\mobeena\\\\my\\\\other\\\\trading_app\" && node src/exchange.js amqp://localhost)",
+      "Bash(cd \"C:\\\\Users\\\\mobeena\\\\my\\\\other\\\\trading_app\" && node server/src/index.js amqp://localhost)",
+      "Bash(cd \"C:\\\\Users\\\\mobeena\\\\my\\\\other\\\\trading_app\\\\web\" && npx ng serve --port 4200)",
+      "Bash(taskkill //PID 19096 //F 2>&1 && taskkill //PID 30452 //F 2>&1)",
+      "Bash(taskkill //PID 23180 //F 2>&1 && taskkill //PID 33036 //F 2>&1 && taskkill //PID 34176 //F 2>&1 && taskkill //PID 3512 //F 2>&1)"
+    ]
+  }
+}
