@@ -1,0 +1,84 @@
+%%{ init: { "theme": "dark" } }%%
+graph LR
+
+    %% ════════════════════════════════════════════
+    %%  Angular Frontend  (web/ — :4200)
+    %% ════════════════════════════════════════════
+    subgraph Angular["Angular 19 Frontend — :4200"]
+        direction TB
+        WS_SVC["WebSocketService<br/><i>socket.io-client</i>"]
+        API_SVC["TradingApiService<br/><i>HttpClient</i>"]
+        HEADER["HeaderComponent<br/><i>live price + change</i>"]
+        OB["OrderBookComponent<br/><i>buy &amp; sell books</i>"]
+        TF["TradeFeedComponent<br/><i>recent trades</i>"]
+        OF["OrderFormComponent<br/><i>submit orders</i>"]
+        AL["ActivityLogComponent"]
+
+        OF -- "submitOrder()" --> API_SVC
+        WS_SVC -- "onPrice()" --> HEADER
+        WS_SVC -- "onOrderBook()" --> OB
+        WS_SVC -- "onTrade()" --> TF
+        WS_SVC -- "onSnapshot()" --> HEADER
+        WS_SVC -- "onSnapshot()" --> OB
+        WS_SVC -- "onSnapshot()" --> TF
+    end
+
+    %% ════════════════════════════════════════════
+    %%  Express + Socket.IO Server  (server/ — :3000)
+    %% ════════════════════════════════════════════
+    subgraph Server["Express + Socket.IO Server — :3000"]
+        direction TB
+        ROUTES["routes/orders.js<br/><i>REST API</i>"]
+        STATE["state.js<br/><i>in-memory cache<br/>trades, orderbooks, prices</i>"]
+        RMQ_SVC["services/rabbitmq.js<br/><i>AMQP client</i>"]
+        IO["Socket.IO Server"]
+
+        ROUTES -- "publishOrder()" --> RMQ_SVC
+        RMQ_SVC -- "onTrade() callback" --> STATE
+        RMQ_SVC -- "onOrderBook() callback" --> STATE
+        STATE -- "getSnapshot()" --> IO
+    end
+
+    %% ════════════════════════════════════════════
+    %%  RabbitMQ  (Docker — :5672)
+    %% ════════════════════════════════════════════
+    subgraph RabbitMQ["RabbitMQ — :5672"]
+        direction TB
+        OQ["'orders' queue<br/><i>point-to-point</i>"]
+        TX["'trades' exchange<br/><i>fanout</i>"]
+        BX["'orderbook' exchange<br/><i>fanout</i>"]
+    end
+
+    %% ════════════════════════════════════════════
+    %%  Exchange Engine  (exchange.js)
+    %% ════════════════════════════════════════════
+    subgraph Exchange["exchange.js — Matching Engine"]
+        ME["Order Matching<br/><i>BUY ↔ SELL price discovery<br/>uses resting order's price</i>"]
+    end
+
+    %% ── Angular → Server ─────────────────────
+    API_SVC -- "POST /api/orders<br/>{user, side, price, qty, stock}" --> ROUTES
+    API_SVC -- "GET /api/trades" --> ROUTES
+    API_SVC -- "GET /api/orderbook" --> ROUTES
+    WS_SVC <-- "Socket.IO WebSocket<br/>events: snapshot, trade,<br/>orderbook, price" --> IO
+
+    %% ── Server → RabbitMQ ────────────────────
+    RMQ_SVC -- "sendToQueue('orders')<br/>order JSON" --> OQ
+    TX -- "consume via<br/>exclusive queue" --> RMQ_SVC
+    BX -- "consume via<br/>exclusive queue" --> RMQ_SVC
+
+    %% ── Exchange ↔ RabbitMQ ──────────────────
+    OQ -- "consume orders" --> ME
+    ME -- "publish trade<br/>{buyer, seller, price, qty, timestamp}" --> TX
+    ME -- "publish orderbook snapshot<br/>{stock, buys[], sells[]}" --> BX
+
+    %% ── Styling ──────────────────────────────
+    classDef angular fill:#e84393,stroke:#c44a7a,color:#fff
+    classDef server fill:#0984e3,stroke:#0770c2,color:#fff
+    classDef rabbit fill:#ff6b35,stroke:#d45a2d,color:#fff
+    classDef engine fill:#6c5ce7,stroke:#5a4bd6,color:#fff
+
+    class WS_SVC,API_SVC,HEADER,OB,TF,OF,AL angular
+    class ROUTES,STATE,RMQ_SVC,IO server
+    class OQ,TX,BX rabbit
+    class ME engine
